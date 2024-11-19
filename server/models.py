@@ -29,6 +29,8 @@ class Ride(db.Model):
     name = db.Column(db.String)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     pickup_time = db.Column(DateTime, nullable=False)
+    spaces = db.Column(db.Integer)
+    destination = db.Column(db.String)
 
     #Relationship to User(one-to-many)
     user = db.relationship('User', back_populates='rides')

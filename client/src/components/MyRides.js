@@ -1,12 +1,12 @@
 import React from 'react';
 
-function About() {
+function MyRides() {
 
     return (
         <div>
-            <h1>About</h1>
+            <h1>My Rides</h1>
         </div>
     )
 }
 
-export default About;
+export default MyRides;

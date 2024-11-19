@@ -11,27 +11,27 @@ import {NavLink} from "react-router-dom";
                 activeStyle={{
                   background: "darkred",
                 }}
-                >Home</NavLink>
+                >Available Rides and Haulers</NavLink>
               </div>
             
             <div className="navLinks">
               <NavLink 
-              to="/contact"
+              to="/my-rides"
               exact
               activeStyle={{
                 background: "darkred",
               }}
-              >Contact</NavLink>
+              >My Rides</NavLink>
             </div>
 
         <div className="navLinks">
           <NavLink 
-          to="/about"
+          to="/create-rides"
           exact
           activeStyle={{
             background: "darkred",
           }}
-          >About</NavLink>
+          >Create Ride</NavLink>
         </div>
         
       </div>
