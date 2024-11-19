@@ -13,5 +13,11 @@ from models import db
 if __name__ == '__main__':
     fake = Faker()
     with app.app_context():
+
+        fake = Faker()
+
+        Ride.query.delete()
+        Horse.query.delete()
+        User.query.delete()
         print("Starting seed...")
         # Seed code goes here!

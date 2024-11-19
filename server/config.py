@@ -1,13 +1,13 @@
 # Standard library imports
-
+import enum
 # Remote library imports
 from flask import Flask
 from flask_cors import CORS
 from flask_migrate import Migrate
 from flask_restful import Api
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import MetaData
-
+from sqlalchemy import MetaData, Enum, DateTime
+from datetime import datetime
 # Local imports
 
 # Instantiate app, set attributes
@@ -28,4 +28,4 @@ db.init_app(app)
 api = Api(app)
 
 # Instantiate CORS
-CORS(app)
+CORS(app, resources={r"/api/*": {"origins": "*"}})
