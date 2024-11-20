@@ -1,13 +1,13 @@
 # Standard library imports
-import enum
+
 # Remote library imports
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from flask_migrate import Migrate
 from flask_restful import Api
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import MetaData, Enum, DateTime
-from datetime import datetime
+from sqlalchemy import MetaData
+
 # Local imports
 
 # Instantiate app, set attributes

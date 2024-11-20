@@ -1,9 +1,9 @@
 from sqlalchemy_serializer import SerializerMixin
 from sqlalchemy.ext.associationproxy import association_proxy
-
+from sqlalchemy import Enum, Float, DateTime 
 from config import db
 
-
+import enum
 
 # Models go here!
 class User(db.Model):
@@ -41,7 +41,8 @@ class Ride(db.Model):
     user = db.relationship('User', back_populates='rides')
 
     #Relationship to horses(many-to-many)
-    horses = db.relationship('Horse', secondary='bookings', back_populates='rides')
+    horses = db.relationship('Horse', secondary='bookings', back_populates='rides', overlaps='users, rides')
+
 
     def __repr__(self):
         return f'<Ride {self.id}, {self.name}>'
@@ -60,7 +61,7 @@ class Horse(db.Model):
     owner = db.relationship('User', back_populates='horses')
 
     # Relationship to Rides (many-to-many)
-    rides = db.relationship('Ride', secondary='bookings', back_populates='horses')
+    rides = db.relationship('Ride', secondary='bookings', back_populates='horses', overlaps='rides,horses')
 
     def __repr__(self):
         return f'<Horse {self.name}, {self.age}, {self.weight}>'
@@ -79,11 +80,11 @@ class Booking(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     ride_id = db.Column(db.Integer, db.ForeignKey('rides.id'))
-    horse_id = db.Column(db.Integer, db.ForeignKey('horses.id '))
+    horse_id = db.Column(db.Integer, db.ForeignKey('horses.id'))
     status = db.Column(Enum(BookingStatus), default=BookingStatus.PENDING)
 
-    ride = db.relationship('Ride')
-    horse = db.relationship('Horse')
+    ride = db.relationship('Ride', overlaps='horses, rides')
+    horse = db.relationship('Horse', overlaps='rides, horses')
 
     def __repr__(self):
         return f'<Booking {self.id}, Ride: {self.ride_id}. Horse: {self.horse_id}, Status: {self.status.value}>'
