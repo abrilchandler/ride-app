@@ -18,8 +18,12 @@ from config import app, db, api
 def index():
     return '<h1>Project Server</h1>'
 
-@app.route('/home')
-def home():
+@app.route('/create-rides')
+def create_rides():
+    return '<h1></h1>'
+
+@app.route('/my-rides')
+def my_rides():
     return '<h1></h1>'
 
 if __name__ == '__main__':

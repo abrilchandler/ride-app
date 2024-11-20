@@ -11,6 +11,7 @@ class User(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(20), unique=True, nullable=False)
+    email = db.Column(db.String(120), unique=True, nullable=False)
 
     # Relationship to Rides (on-to-many, hauler)
     rides = db.relationship('Ride', back_populates='user')
@@ -26,11 +27,15 @@ class Ride(db.Model):
     __tablename__ = 'rides'
 
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String)
+    name = db.Column(db.String, nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
-    pickup_time = db.Column(DateTime, nullable=False)
-    spaces = db.Column(db.Integer)
-    destination = db.Column(db.String)
+    pickup_time = db.Column(db.DateTime, nullable=False)
+    spaces = db.Column(db.Integer, nullable=False, default=1)
+    destination = db.Column(db.String, nullable=False)
+    price = db.Column(db.Integer, nullable=False)
+    duration = db.Column(db.Integer, nullable=False)
+    ride_date = db.Column(db.DateTime, nullable=False)
+    mileage = db.Column(db.Float, nullable=False)
 
     #Relationship to User(one-to-many)
     user = db.relationship('User', back_populates='rides')
