@@ -5,6 +5,9 @@ function RideForm() {
     const [pickupTime, setPickupTime] = useState('')
     const [spaces, setSpaces] = useState(0)
     const [destination, setDestination] = useState('')
+    const [duration, setDuration] = useState(0)
+    const [mileage, setMileage] = useState(0)
+
 
     const handleSubmit = (e) => {
         e.preventDefault();
@@ -13,6 +16,8 @@ function RideForm() {
                 name: name,
                 pickupTime: new Date(pickupTime).toISOString(),
                 spaces: parseInt(spaces, 10),
+                destination: destination,
+                duration: parseInt(duration, 16)
         };
 
         fetch('/api/rides', {
@@ -24,20 +29,23 @@ function RideForm() {
         })
         .then(response => {
             if (!response.ok) {
-                throw new Error('Network response ws not ok')
+                throw new Error('Network response was not ok')
             }
             return response.json();
         })
         .then(data => {
             console.log('Ride Created', data);
-            setName('');
-            setPickupTime('');
-            setSpaces('');
-            setDestination('');
+            
         })
         .catch(error => {
             console.error('Error creating ride:', error);
         });
+        setName('');
+        setPickupTime('');
+        setSpaces(0);
+        setDestination('');
+        setDuration(0);
+        setMileage(0);
     }
 
     return (
@@ -45,7 +53,7 @@ function RideForm() {
             <h1>Let's create a ride</h1>
             <section>
                 <form onSubmit={handleSubmit} method='post'>
-                    <div>
+                    <div class='container-one'>
                         <label>
                             Ride Name:
                             <input
@@ -55,7 +63,7 @@ function RideForm() {
                                 required />
                         </label>
                     </div>
-                    <div>
+                    <div class='container-two'>
                         <label>
                             Pickup Time:
                             <input
@@ -64,10 +72,11 @@ function RideForm() {
                                 onChange={(e) => setPickupTime(e.target.value)}
                                 required />
                         </label>
-                    <div>
+                    </div>
+                    <div class='container-three'>
                         <label>
                             Available Spaces:
-                            <input 
+                            <input
                                 type='number'
                                 value={spaces}
                                 onChange={(e) => setSpaces(e.target.value)}
@@ -75,18 +84,39 @@ function RideForm() {
                                 min='1' />
                         </label>
                     </div>
-                    <div>
+                    <div class='container-four'>
                         <label>
                             Destination:
                             <input
-                                type='number'
-                                value={spaces}
+                                type='text'
+                                value={destination}
                                 onChange={(e) => setDestination(e.target.value)}
                                 required />
                         </label>
                     </div>
-                    <button type='submit'>Create Ride</button>
+                    <div class='container-five'>
+                        <label>
+                            Duration:
+                            <input
+                                type="number" max="16"
+                                value={duration}
+                                onChange={(e) => setDuration(e.target.value)}
+                                required />
+                        </label>
                     </div>
+                    <div class='container-six'> 
+                        <label>
+                            Miles Covered:
+                            <input
+                                type='number'
+                                value={mileage}
+                                onChange={(e) => setMileage(e.target.value)}
+                                required />
+                        </label>
+                    </div>
+                    
+                    <button type='submit'
+                    value='Submit' onSubmit={handleSubmit}>Create Ride</button>
                 </form>
             </section>
         </div>

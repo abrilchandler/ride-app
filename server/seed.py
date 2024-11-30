@@ -14,17 +14,17 @@ if __name__ == '__main__':
     fake = Faker()
     with app.app_context():
 
-        Ride.query.delete()
-        Horse.query.delete()
-        User.query.delete()
-        Booking.query.delete()
+#        Ride.query.delete()
+ #       Horse.query.delete()
+  #      User.query.delete()
+   #     Booking.query.delete()
 
         users = [
             User(username=fake.name(),
                  email=fake.email()
             ) for _ in range(10)
         ]
-        db.session.add.all(users)
+        db.session.add_all(users)
         db.session.commit()
 
         rides = [
@@ -36,7 +36,6 @@ if __name__ == '__main__':
                 destination=fake.city(),
                 price=randint(50, 300),
                 duration=randint(1, 5),
-                ride_date=fake.future_date(),
                 mileage=round(uniform(1.0, 100.0), 2)
             ) for _ in range(20)
         ]

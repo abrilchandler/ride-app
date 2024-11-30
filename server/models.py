@@ -6,7 +6,7 @@ from config import db
 import enum
 
 # Models go here!
-class User(db.Model):
+class User(db.Model, SerializerMixin):
     __tablename__ = 'users'
 
     id = db.Column(db.Integer, primary_key=True)
@@ -23,7 +23,7 @@ class User(db.Model):
         return f'<User {self.id}, {self.username}>'
     
 
-class Ride(db.Model):
+class Ride(db.Model, SerializerMixin):
     __tablename__ = 'rides'
 
     id = db.Column(db.Integer, primary_key=True)
@@ -32,9 +32,7 @@ class Ride(db.Model):
     pickup_time = db.Column(db.DateTime, nullable=False)
     spaces = db.Column(db.Integer, nullable=False, default=1)
     destination = db.Column(db.String, nullable=False)
-    price = db.Column(db.Integer, nullable=False)
     duration = db.Column(db.Integer, nullable=False)
-    ride_date = db.Column(db.DateTime, nullable=False)
     mileage = db.Column(db.Float, nullable=False)
 
     #Relationship to User(one-to-many)
@@ -48,7 +46,7 @@ class Ride(db.Model):
         return f'<Ride {self.id}, {self.name}>'
     
 
-class Horse(db.Model):
+class Horse(db.Model, SerializerMixin):
     __tablename__ = 'horses'
 
     id = db.Column(db.Integer, primary_key=True)
