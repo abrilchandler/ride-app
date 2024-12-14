@@ -2,47 +2,8 @@ import React, { useState } from 'react';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 
-
-// pull your submitHandler out here. now you can put this on line 62 instead of having it all typed out down there
-const submitHandler = (values) => {
-    {
-        const newRide = {
-            ...values,
-            pickupTime: new Date(values.pickupTime).toISOString(),
-        };
-        fetch('/api/rides', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(newRide),
-        })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Network response was not okay')
-            }
-            return response.json();
-        })
-        .then(data => {
-            console.log('Ride Created', data);
-        })
-        .catch(error => {
-            console.error('Error creating ride:', error);
-        });
-    }
-}
-
-// you could do the same with initial values but that's not as long so it matters less
-
 function RideForm() {
-    // you shouldn't need any of these anymore because formik handles it!
-
-    // const [name, setName] = useState('');
-    // const [pickupTime, setPickupTime] = useState('')
-    // const [spaces, setSpaces] = useState(0)
-    // const [destination, setDestination] = useState('')
-    // const [duration, setDuration] = useState(0)
-    // const [mileage, setMileage] = useState(0)
+    const [message, setMessage] = useState('');
 
     const validationSchema = Yup.object({
         name: Yup.string().required("Ride name is required"),
@@ -63,11 +24,12 @@ function RideForm() {
             mileage: 0,
         },
         validationSchema: validationSchema,
-        onSubmit: (values) => {
+        onSubmit: (values, {resetForm}) => {
             const newRide = {
                 ...values,
                 pickupTime: new Date(values.pickupTime).toISOString(),
             };
+            console.log('Submitting:', newRide); // Debugging line
             fetch('/api/rides', {
                 method: 'POST',
                 headers: {
@@ -75,6 +37,7 @@ function RideForm() {
                 },
                 body: JSON.stringify(newRide),
             })
+            
             .then(response => {
                 if (!response.ok) {
                     throw new Error('Network response was not okay')
@@ -83,51 +46,16 @@ function RideForm() {
             })
             .then(data => {
                 console.log('Ride Created', data);
+                setMessage("Ride created successfully");
+                resetForm();
             })
             .catch(error => {
                 console.error('Error creating ride:', error);
             });
         },
     });
-    // const handleSubmit = (e) => {
-    //     e.preventDefault();
-
-    //     const newRide = {
-    //             name: name,
-    //             pickupTime: new Date(pickupTime).toISOString(),
-    //             spaces: parseInt(spaces, 10),
-    //             destination: destination,
-    //             duration: parseInt(duration, 16)
-    //     };
-
-    //     fetch('/api/rides', {
-    //         method: 'POST',
-    //         headers: {
-    //             'Content-Type': 'application/json',
-    //         },
-    //         body: JSON.stringify(newRide),
-    //     })
-    //     .then(response => {
-    //         if (!response.ok) {
-    //             throw new Error('Network response was not ok')
-    //         }
-    //         return response.json();
-    //     })
-    //     .then(data => {
-    //         console.log('Ride Created', data);
-            
-    //     })
-    //     .catch(error => {
-    //         console.error('Error creating ride:', error);
-    //     });
-    //     setName('');
-    //     setPickupTime('');
-    //     setSpaces(0);
-    //     setDestination('');
-    //     setDuration(0);
-    //     setMileage(0);
-    // }
-
+   
+    
     return (
         <div>
             <h1>Let's create a ride</h1>

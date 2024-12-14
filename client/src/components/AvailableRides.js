@@ -1,34 +1,33 @@
 import React, { useEffect, useState } from 'react';
+import { useHistory } from 'react-router-dom';
 
 function AvailableRides({userId}) {
     const [rides, setRides] = useState([]);
+    const history = useHistory();
 
     useEffect(() => {
         fetchRides();
     }, []);
 
     const fetchRides = async () => {
-        const response = await fetch('api/rides/');
+        const response = await fetch('/api/available_rides');
         const data = await response.json();
         setRides(data);
     };
 
-    const claimRide = async (rideId) => {
-        try {
-            const response = await fetch('/api/claim_ride', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ ride_id: rideId, user_id: userId }),
-            });
-            if (!response.ok) {
-                throw new Error('Failed to claim ride');
-            }
-            const result = await response.json();
-            console.log('Ride claimed successfully:', result);
-        } catch (error) {
-            console.error('Error claiming ride:', error);
+    const handleClaim = async (rideId) => {
+        const username = 'username';
+        const response = await fetch('/api/claim_ride', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json'},
+            body: JSON.stringify({ride_id: rideId, username: username}),
+        });
+        const data = await response.json();
+
+        if (response.ok) {
+            history.pushState('/claimed_rides');
+        } else {
+            alert(data.error);
         }
     };
 
@@ -38,12 +37,11 @@ function AvailableRides({userId}) {
             <ul>
                 {rides.map(ride => (
                     <li key={ride.id}>
-                        {ride.name}: {ride.pickup_time} to {ride.destination} for {ride.duration}
-                        {ride.mileage} miles
-                    <button onClick={() => claimRide(ride.id)}>Claim Ride</button>
-                    </li>// in here you'll need some kind of button for claiming rides right? clicking it would send a request
-                    // to the server with a ride id and a user id or something to make a claimedRide and then you could 
-                    // make requests from that e
+                        {ride.name}: {ride.pickup_time} to {ride.destination} for {ride.duration} hours and {ride.mileage} miles |<br></br>| Spaces left: {ride.spaces} 
+                    <button onClick={() => handleClaim(ride.id)}>Claim Ride</button>
+                    <br></br>
+                    <br></br>
+                    </li>
                 ))}
             </ul>
         </div>

@@ -7,7 +7,9 @@ function CreateRides() {
         <div>
             <h1>Create Rides</h1>
             <RideForm />
+            <br></br>
         </div>
+
     )
 }
 

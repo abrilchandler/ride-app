@@ -1,8 +1,17 @@
 import React from "react";
 import {NavLink} from "react-router-dom";
 
+  function Navigation({onLogout}) {
 
-  function Navigation() {
+    function handleLogout() {
+      fetch('/api/logout', {
+        method: 'DELETE',
+      }).then(() => {
+        onLogout();  // Call the onLogout prop to handle any state changes
+      }).catch(error => {
+        console.error('Error during logout:', error);
+      });
+    }
     return (
       
                   <div className="navBar">
@@ -47,6 +56,15 @@ import {NavLink} from "react-router-dom";
                         background: "white",
                       }}
                       >My Rides</NavLink>
+                    </div>
+                    <div>
+
+                    </div>
+                    <div>
+                      <button onClick={handleLogout} className="logoutButton">
+                        Logout
+                      </button>
+
                     </div>
                 </div>
     )

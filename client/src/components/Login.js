@@ -2,30 +2,36 @@ import React, { useState } from 'react'
 
 function Login({ onLogin }) {
     const [username, setUsername] = useState('');
-    const {password, setPassword} = useState('');
     
-    const handleSubmit = async (e) => {
+    function handleSubmit(e) {
         e.preventDefault();
-        const response = await fetch('/login', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({username, password})
+        fetch("/api/login", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ username }),
+        }).then((r) => {
+          if (r.ok) {
+            r.json().then((user) => onLogin(user));
+          }
         });
-
-        if (response.ok) {
-            onLogin();
-        } else {
-            alert('Login failed');
-        }
-    };
+      }
 
     return (
         <form onSubmit={handleSubmit}>
-            <input type='text' value={username} onChange={(e) => setUsername(e.target.value)} placeholder='username' />
-            <input type='text' value={password} onChange={(e) => setPassword(e.target.value)} placeholder='password' />
+            <input 
+            type='text' 
+            id='username'
+            value={username} 
+            onChange={(e) => setUsername(e.target.value)} 
+            placeholder='username'
+            />
+            
             <button type='submit'>Login</button>
         </form>
     );
 }
+
 
 export default Login;
