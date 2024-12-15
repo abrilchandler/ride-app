@@ -58,7 +58,7 @@ class Ride(db.Model):
         return {
             'id': self.id,
             'name': self.name,
-            'pickup_time': self.pickup_time,
+            'pickup_time': self.pickup_time.strftime('%Y-%m-%d %H:%M:%S'),
             'spaces': self.spaces,
             'destination': self.destination,
             'duration': self.duration,

@@ -12,6 +12,8 @@ function AvailableRides({userId}) {
     const fetchRides = async () => {
         const response = await fetch('/api/available_rides');
         const data = await response.json();
+        console.log('Fetched available rides:', data); // Debug log
+
         setRides(data);
     };
 
@@ -25,7 +27,7 @@ function AvailableRides({userId}) {
         const data = await response.json();
 
         if (response.ok) {
-            history.pushState('/claimed_rides');
+            history.push('/claimed_rides');
         } else {
             alert(data.error);
         }
@@ -33,18 +35,20 @@ function AvailableRides({userId}) {
 
     return (
         <div>
-            <h2>Available Rides</h2>
+        <h2>Available Rides</h2>
+        {rides.length === 0 ? (
+            <p>No available rides at the moment.</p>
+        ) : (
             <ul>
-                {rides.map(ride => (
+                {rides.map((ride) => (
                     <li key={ride.id}>
-                        {ride.name}: {ride.pickup_time} to {ride.destination} for {ride.duration} hours and {ride.mileage} miles |<br></br>| Spaces left: {ride.spaces} 
-                    <button onClick={() => handleClaim(ride.id)}>Claim Ride</button>
-                    <br></br>
-                    <br></br>
+                        {ride.name}: {ride.pickup_time} to {ride.destination} for {ride.duration} hours and {ride.mileage} miles | Spaces left: {ride.spaces}
+                        <button onClick={() => handleClaim(ride.id)}>Claim Ride</button>
                     </li>
                 ))}
             </ul>
-        </div>
+        )}
+    </div>
     )
     
 }

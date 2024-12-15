@@ -107,7 +107,7 @@ class Get_Rides(Resource):
         rides_list = [{'id': ride.id, 'name': ride.name, 'spaces': ride.spaces, 'destination': ride.destination, 'duration': ride.duration, 'mileage': ride.mileage} for ride in rides]
         return jsonify(rides_list)
 
-# @app.route('/api/claim_ride', methods=['POST'])
+
 class ClaimedRides(Resource):
     def get(self):
         user_id = session.get('user_id')
@@ -192,7 +192,14 @@ class MyRides(Resource):
     
 class AvailableRides(Resource):
     def get(self):
-        rides = Ride.query.filter(Ride.claimers == None).all()
+        rides = Ride.query.filter(
+            Ride.spaces > 0,               # Ride must have available spaces
+            Ride.pickup_time > datetime.now(),  # Pickup time must be in the future
+            ~Ride.claimers.any()           # Ride must have no claimers (empty relationship)
+        ).all()
+
+        print(f"Available rides: {rides}")   # Add this for debugging
+
         if not rides:
             return [], 200
         
