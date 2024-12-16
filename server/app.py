@@ -131,9 +131,11 @@ class Claim_Ride(Resource):
         try:
             ride = Ride.query.filter_by(id=ride_id).first()
             user = User.query.filter_by(username=username).first()
+            print(ride)
+            print(user)
 
             if not ride or not user:
-                return {"error": "Ride or User not found"}, 404
+                return {"error": "Ride or User not found!"}, 404
         
             if len(ride.claimers) >= ride.spaces:
                 return {"error": "Ride or User not found"}, 400

@@ -27,7 +27,7 @@ function AvailableRides({userId}) {
         const data = await response.json();
 
         if (response.ok) {
-            history.push('/claimed_rides');
+            history.push('/api/claimed_rides');
         } else {
             alert(data.error);
         }
