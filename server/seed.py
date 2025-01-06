@@ -40,16 +40,6 @@ if __name__ == '__main__':
         db.session.add_all(rides)
         db.session.commit()
 
-        horses = [
-            Horse(
-                name=fake.first_name(),
-                age=randint(1, 15),
-                weight=randint(800, 1400),
-                owner_id=rc(users).id
-            ) for _ in range(50)
-        ]
-        db.session.add_all(horses)
-        db.session.commit()
 
         bookings = [
             Booking(

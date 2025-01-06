@@ -19,18 +19,16 @@ class User(db.Model, SerializerMixin):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(20), unique=True, nullable=False)
 
-    # Relationship to Rides (on-to-many, hauler)
+    # Relationship to Rides (one-to-many, hauler)
     rides = db.relationship('Ride', back_populates='user')
 
-    # Relationship to Horses(one-to-many, owner)
-    horses = db.relationship('Horse', back_populates='owner')
-
+    # Many-to-many relationship to Rides with a user-submittable 'status' attribute
     claimed_rides = db.relationship('Ride', secondary=user_ride_table, back_populates='claimers')
 
     def __repr__(self):
         return f'<User {self.id}, {self.username}>'
     
-
+    
 class Ride(db.Model):
     __tablename__ = 'rides'
 
@@ -43,17 +41,15 @@ class Ride(db.Model):
     duration = db.Column(db.Integer, nullable=False)
     mileage = db.Column(db.Integer, nullable=False)
 
-    #Relationship to User(one-to-many)
+    # Relationship to User (one-to-many)
     user = db.relationship('User', back_populates='rides')
 
-    #Relationship to horses(many-to-many)
-    horses = db.relationship('Horse', secondary='bookings', back_populates='rides', overlaps='users, rides')
-
+    # Many-to-many relationship with User (with a status)
     claimers = db.relationship('User', secondary=user_ride_table, back_populates='claimed_rides')
 
     def __repr__(self):
         return f'<Ride {self.id}, {self.name}>'
-    
+
     def to_dict(self):
         return {
             'id': self.id,
@@ -65,25 +61,6 @@ class Ride(db.Model):
             'mileage': self.mileage,
             'user_id': self.user_id 
         }
-    
-
-class Horse(db.Model, SerializerMixin):
-    __tablename__ = 'horses'
-
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String)
-    age = db.Column(db.Integer)
-    weight = db.Column(db.Integer)
-    owner_id = db.Column(db.Integer, db.ForeignKey('users.id'))
-
-    # Relationship to User (one-to-many)
-    owner = db.relationship('User', back_populates='horses')
-
-    # Relationship to Rides (many-to-many)
-    rides = db.relationship('Ride', secondary='bookings', back_populates='horses', overlaps='rides, horses')
-
-    def __repr__(self):
-        return f'<Horse {self.name}, {self.age}, {self.weight}>'
     
 
 class BookingStatus(enum.Enum):
@@ -99,12 +76,12 @@ class Booking(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     ride_id = db.Column(db.Integer, db.ForeignKey('rides.id'))
-    horse_id = db.Column(db.Integer, db.ForeignKey('horses.id'))
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     status = db.Column(Enum(BookingStatus), default=BookingStatus.PENDING)
+    feedback = db.Column(db.String(500))  # User-submittable feedback
 
-   # horses = db.relationship('Horse', secondary='bookings', back_populates='rides')
-
+    ride = db.relationship('Ride')
+    user = db.relationship('User')
 
     def __repr__(self):
-        return f'<Booking {self.id}, Ride: {self.ride_id}. Horse: {self.horse_id}, Status: {self.status.value}>'
-    
+        return f'<Booking {self.id}, Ride: {self.ride_id}, User: {self.user_id}, Status: {self.status.value}>'
