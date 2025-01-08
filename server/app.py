@@ -16,6 +16,15 @@ from models import Ride, User, Booking, BookingStatus
 # Flask-RESTful API setup
 api = Api(app)
 
+class CheckSession(Resource):
+    def get(self):
+        user_id = session.get('user_id')
+        if user_id:
+            user = User.query.get(user_id)
+            if user:
+                return {"message": "User is logged in", "username": user.username}, 200
+        return {"message": "No user logged in"}, 401
+
 # Register a new user
 class Register(Resource):
     def post(self):
@@ -23,8 +32,8 @@ class Register(Resource):
         username = data.get('username')
 
         if User.query.filter_by(username=username).first():
-            return jsonify({'error': 'Username already exists'})
-    
+            return jsonify({'error': 'Username already exists'}), 400
+        
         new_user = User(username=username)
 
         db.session.add(new_user)
@@ -87,9 +96,7 @@ class Submit_Ride(Resource):
 # this myRides should be check_session, it runs when the app starts and sends the user, with an attribute of rides: and nested bookings inside the rides
 class MyRides(Resource):
     def get(self):
-        user_id = session.get('user_id')
-        if not user_id:
-            return {"error": "Unauthorized"}, 401
+        user_id = check_session()
         
         rides = Ride.query.filter_by(user_id=user_id).all()
         return jsonify([ride.to_dict() for ride in rides])
@@ -225,6 +232,7 @@ class BookingById(Resource):
 
 
 # API Endpoints
+api.add_resource(CheckSession, '/api/check_session')
 api.add_resource(Register, '/api/register')
 api.add_resource(Login, '/api/login')
 api.add_resource(Logout, '/api/logout')

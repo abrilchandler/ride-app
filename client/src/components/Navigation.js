@@ -49,16 +49,6 @@ import {NavLink} from "react-router-dom";
                       >My Rides</NavLink>
                     </div>
 
-                    <div className="navLinks">
-                      <NavLink
-                      to="/my-bookings"
-                      exact
-                      activeStyle={{
-                        background: "white",
-                      }}
-                      >My Bookings</NavLink>
-                    </div>
-
                   
 
                     <div>

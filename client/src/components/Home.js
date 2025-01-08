@@ -29,9 +29,11 @@ function Home({ user }) {
   };
 
   const handleBookRide = (rideId) => {
+    console.log(rideId) // make sure there's something here
     setSelectedRide(rideId);  // Set the selected ride's ID when the user chooses a ride
   };
-
+  console.log(user, "user") // check to make sure this is present
+  console.log(rides) // make sure each ride has an id and it can be accessed by ride.id
   return (
     <div>
       <h1>Available Rides</h1>
