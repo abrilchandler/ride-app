@@ -4,11 +4,10 @@ import Navigation from './Navigation.js';
 import Home from "./Home.js";
 import CreateRides from './CreateRides.js';
 import MyRides from "./MyRides.js";
-import AvailableRides from './AvailableRides.js';
 import Login from './Login.js';
 import Register from './Register.js';
 import Header from './Header.js';
-import ClaimedRides from './ClaimedRides.js';
+import MyBookings from './MyBookings.js';
 
 
 function App() {
@@ -46,17 +45,16 @@ function App() {
         <Route path="/my-rides">
           {user ? <MyRides /> : <Redirect to='/register' />}
         </Route>
-        <Route path='/available-rides'>
-          {user ? <AvailableRides /> : <Redirect to='/register' />}
-        </Route>
         <Route path="/create-rides">
           {user ? <CreateRides /> : <Redirect to='/register' />}
         </Route>
-        <Route>
-          {user ? <Home /> : <Redirect to='/register' />}
+        <Route path="/my-bookings">
+          {user ? <MyBookings /> : <Redirect to='/register' />}
         </Route>
-        <Route path='/claimed-rides'>
-          {user ? <ClaimedRides /> : <Redirect to='/register' />}
+
+        
+        <Route exact path="/">
+          {user ? <Home user={user} /> : <Redirect to='/register' />}
         </Route>
       </Switch>
       
@@ -66,3 +64,6 @@ function App() {
 }
 
 export default App;
+
+// i need my createbooking file to be integrated into my home file so i can have a button attached to each available ride to change the status of the ride, then have it moved to my bookings
+// next i need updatebookings off the navbar and only available when in my bookings

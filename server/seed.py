@@ -8,14 +8,13 @@ from faker import Faker
 
 # Local imports
 from app import app
-from models import db, User, Ride, Horse, Booking, BookingStatus
+from models import db, User, Ride, Booking, BookingStatus
 
 if __name__ == '__main__':
     fake = Faker()
     with app.app_context():
 
         Ride.query.delete()
-        Horse.query.delete()
         User.query.delete()
         Booking.query.delete()
 
@@ -44,7 +43,7 @@ if __name__ == '__main__':
         bookings = [
             Booking(
                 ride_id=rc(rides).id,
-                horse_id=rc(horses).id,
+                user_id=rc(users).id,
                 status=rc(list(BookingStatus))
             ) for _ in range(30)
         ]

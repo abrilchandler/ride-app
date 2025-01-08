@@ -1,8 +1,8 @@
-"""empty message
+"""Initial migration after fixing models
 
-Revision ID: ade1989f9141
+Revision ID: 0cc7714b2314
 Revises: 
-Create Date: 2024-12-06 14:10:10.649422
+Create Date: 2025-01-06 20:11:32.435890
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = 'ade1989f9141'
+revision = '0cc7714b2314'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -23,15 +23,6 @@ def upgrade():
     sa.Column('username', sa.String(length=20), nullable=False),
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('username')
-    )
-    op.create_table('horses',
-    sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('name', sa.String(), nullable=True),
-    sa.Column('age', sa.Integer(), nullable=True),
-    sa.Column('weight', sa.Integer(), nullable=True),
-    sa.Column('owner_id', sa.Integer(), nullable=True),
-    sa.ForeignKeyConstraint(['owner_id'], ['users.id'], name=op.f('fk_horses_owner_id_users')),
-    sa.PrimaryKeyConstraint('id')
     )
     op.create_table('rides',
     sa.Column('id', sa.Integer(), nullable=False),
@@ -48,15 +39,17 @@ def upgrade():
     op.create_table('bookings',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('ride_id', sa.Integer(), nullable=True),
-    sa.Column('horse_id', sa.Integer(), nullable=True),
+    sa.Column('user_id', sa.Integer(), nullable=True),
     sa.Column('status', sa.Enum('PENDING', 'CONFIRMED', 'CANCELLED', 'COMPLETED', 'REJECTED', 'IN_PROGRESS', name='bookingstatus'), nullable=True),
-    sa.ForeignKeyConstraint(['horse_id'], ['horses.id'], name=op.f('fk_bookings_horse_id_horses')),
+    sa.Column('feedback', sa.String(length=500), nullable=True),
     sa.ForeignKeyConstraint(['ride_id'], ['rides.id'], name=op.f('fk_bookings_ride_id_rides')),
+    sa.ForeignKeyConstraint(['user_id'], ['users.id'], name=op.f('fk_bookings_user_id_users')),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('user_ride',
     sa.Column('user_id', sa.Integer(), nullable=False),
     sa.Column('ride_id', sa.Integer(), nullable=False),
+    sa.Column('status', sa.String(), nullable=False),
     sa.ForeignKeyConstraint(['ride_id'], ['rides.id'], name=op.f('fk_user_ride_ride_id_rides')),
     sa.ForeignKeyConstraint(['user_id'], ['users.id'], name=op.f('fk_user_ride_user_id_users')),
     sa.PrimaryKeyConstraint('user_id', 'ride_id')
@@ -69,6 +62,5 @@ def downgrade():
     op.drop_table('user_ride')
     op.drop_table('bookings')
     op.drop_table('rides')
-    op.drop_table('horses')
     op.drop_table('users')
     # ### end Alembic commands ###

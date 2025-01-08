@@ -1,17 +1,10 @@
 from sqlalchemy_serializer import SerializerMixin
-from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy import Enum, Float, DateTime 
 from config import db
-# from werkzeug.security import generate_password_hash, check_password_hash
 
 import enum
 
-user_ride_table = db.Table('user_ride', 
-    db.Column('user_id', db.Integer, db.ForeignKey('users.id'), primary_key=True),
-    db.Column('ride_id', db.Integer, db.ForeignKey('rides.id'), primary_key=True),
-    db.Column('status', db.String, nullable=False, default='pending'),  # Example user-submittable attribute
 
-)
 # Models go here!
 class User(db.Model, SerializerMixin):
     __tablename__ = 'users'
@@ -21,20 +14,19 @@ class User(db.Model, SerializerMixin):
 
     # Relationship to Rides (one-to-many, hauler)
     rides = db.relationship('Ride', back_populates='user')
-
-    # Many-to-many relationship to Rides with a user-submittable 'status' attribute
-    claimed_rides = db.relationship('Ride', secondary=user_ride_table, back_populates='claimers')
-
+# this is a direct relationship, but i need a through relationship
+# my user has many items, and a bucket has many items, so a user has many buckets through items
+    
     def __repr__(self):
         return f'<User {self.id}, {self.username}>'
     
-    
+
 class Ride(db.Model):
     __tablename__ = 'rides'
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String, nullable=False)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+   # user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     pickup_time = db.Column(db.DateTime, nullable=False)
     spaces = db.Column(db.Integer, nullable=False, default=1)
     destination = db.Column(db.String, nullable=False)
@@ -42,10 +34,8 @@ class Ride(db.Model):
     mileage = db.Column(db.Integer, nullable=False)
 
     # Relationship to User (one-to-many)
-    user = db.relationship('User', back_populates='rides')
+    # user = db.relationship('User', back_populates='rides')
 
-    # Many-to-many relationship with User (with a status)
-    claimers = db.relationship('User', secondary=user_ride_table, back_populates='claimed_rides')
 
     def __repr__(self):
         return f'<Ride {self.id}, {self.name}>'
@@ -78,10 +68,17 @@ class Booking(db.Model):
     ride_id = db.Column(db.Integer, db.ForeignKey('rides.id'))
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     status = db.Column(Enum(BookingStatus), default=BookingStatus.PENDING)
-    feedback = db.Column(db.String(500))  # User-submittable feedback
 
     ride = db.relationship('Ride')
     user = db.relationship('User')
 
     def __repr__(self):
         return f'<Booking {self.id}, Ride: {self.ride_id}, User: {self.user_id}, Status: {self.status.value}>'
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'ride_id': self.ride_id,
+            'user_id': self.user_id,
+            'status': self.status
+        }

@@ -3,24 +3,20 @@
 # Standard library imports
 
 # Remote library imports
-import uuid
 from datetime import datetime
 from dateutil import parser
-from functools import wraps
-from flask import request, jsonify, session, make_response
-from flask_restful import Resource
+from flask import request, jsonify, session
+from flask_restful import Resource, Api
 from sqlalchemy.exc import IntegrityError
+
 # Local imports
+from config import app, db
+from models import Ride, User, Booking, BookingStatus
 
-from config import app, db, api, bcrypt
-# Add your model imports
-from models import Ride, User, Horse, Booking, BookingStatus, user_ride_table
+# Flask-RESTful API setup
+api = Api(app)
 
-# Views go here!
-
-
-
-# @app.route('/register', methods=['POST'])
+# Register a new user
 class Register(Resource):
     def post(self):
         data = request.json
@@ -36,23 +32,7 @@ class Register(Resource):
 
         return {"username": new_user.username}, 201
 
-# @app.route('/api/check_session', methods=['GET'])
-class Check_Session(Resource):
-    def get(self):
-        user_id = session.get('user_id')
-        if user_id:
-            user = session.get(user_id)
-            return {"username": user.username}, 200
-        else:
-            return '', 401
-    
-# @app.route('/api/clear_session', methods=['DELETE'])
-class Clear_Session(Resource):
-    def delete(self):
-        session.clear()
-        return {}, 204
-
-# @app.route('/api/login', methods=['POST'])
+# Login a user
 class Login(Resource):
     def post(self):
         data = request.json
@@ -64,24 +44,28 @@ class Login(Resource):
             return {"username": user.username}, 200
         else:
             return {'message': 'User not found'}, 404
-    
-# @app.route('/logout', methods=['DELETE'])
+
+# Log out a user
 class Logout(Resource):
     def delete(self):
         session['user_id'] = None
-        return {'message': '204: No Content'}, 204
+        return {'message': 'Logged out successfully'}, 204
 
+# View all rides (public route)
+class Get_Rides(Resource):
+    def get(self):
+        rides = Ride.query.all()
+        rides_list = [{'id': ride.id, 'name': ride.name, 'spaces': ride.spaces, 'destination': ride.destination, 'duration': ride.duration, 'mileage': ride.mileage} for ride in rides]
+        return jsonify(rides_list)
 
-# @app.route('/api/rides', methods=['POST'])
+# Submit a new ride (requires user authentication)
 class Submit_Ride(Resource):
     def post(self):
-    
         data = request.json
         user_id = session.get('user_id')
         if not user_id:
             return {"error": "Unauthorized"}, 401
         try:
-            
             new_ride = Ride(
                 name=data['name'],
                 pickup_time=parser.isoparse(data.get('pickupTime')),
@@ -97,128 +81,28 @@ class Submit_Ride(Resource):
             return jsonify({'message': 'Ride Submitted!'})
         except ValueError as e:
             db.session.rollback()
-            print(f'Error submitting ride: {e}')
             return jsonify({'error': 'Internal Server Error'}), 500
 
-# @app.route('/api/rides', methods=['GET'])
-class Get_Rides(Resource):
-    def get(self):
-        rides = Ride.query.all()
-        rides_list = [{'id': ride.id, 'name': ride.name, 'spaces': ride.spaces, 'destination': ride.destination, 'duration': ride.duration, 'mileage': ride.mileage} for ride in rides]
-        return jsonify(rides_list)
-
-
-class ClaimedRides(Resource):
-    def get(self):
-        user_id = session.get('user_id')
-        if not user_id:
-            return {"error": "Unauthorized"}, 401
-        
-        user = session.get(user_id)
-        if not user:
-            return {"error": "User not found"}, 404
-        
-        claimed_rides = Ride.query.join(user_ride_table).filter(user_ride_table.c.user_id == user.id).all()
-        rides_list = [{'id':ride.id, 'name': ride.name, 'destination': ride.destination, 'status': 'claimed'} for ride in claimed_rides]
-        return jsonify(rides_list)
-    
-class Claim_Ride(Resource):
-    def post(self):
-        data = request.json
-        ride_id = data.get('ride_id')
-        username = data.get('username')
-        
-        try:
-            ride = Ride.query.filter_by(id=ride_id).first()
-            user = User.query.filter_by(username=username).first()
-            print(ride)
-            print(user)
-
-            if not ride or not user:
-                return {"error": "Ride or User not found!"}, 404
-        
-            if len(ride.claimers) >= ride.spaces:
-                return {"error": "Ride or User not found"}, 400
-        
-            ride.claimers.append(user)
-
-            user_ride = db.session.query(user_ride_table).filter_by(user_id=user.id, ride_id=ride.id).first()
-            if user_ride:
-                user_ride.status = 'claimed'
-            db.session.commit()
-
-            return {"message": "Ride claimed successfully"}, 200
-
-        except IntegrityError:
-            db.session.rollback()
-            return {"error": "User has already claimed this ride"}, 400
-        except Exception as e:
-            db.session.rollback()
-            print(f"Error claiming ride: {e}")
-            return {"error": "Internal Server Error"}, 500
-    
-# @app.route('/api/cancel_reservation', methods=['POST'])
-class Cancel_Reservation(Resource):
-    def delete(self):
-        data = request.get_json()
-        ride_id = data.get('ride_id')
-        user_id = session.get('user_id')
-
-
-        try:
-            ride = Ride.query.get(ride_id)
-            user = User.query.get(user_id)
-
-            if not ride or not user:
-                return jsonify({'error': 'Ride or User not found'}), 404
-        
-            ride.claimers.remove(user)
-            db.session.commit()
-
-            return jsonify({'message': 'Reservation cancelled'}), 200
-    
-        except Exception as e:
-            db.session.rollback()
-            print(f'Error cancelling reservation: {e}')
-            return jsonify({'error': 'Internal Server Error'}), 500
-
+# Get all rides for the authenticated user
+# this myRides should be check_session, it runs when the app starts and sends the user, with an attribute of rides: and nested bookings inside the rides
 class MyRides(Resource):
     def get(self):
         user_id = session.get('user_id')
-        
         if not user_id:
             return {"error": "Unauthorized"}, 401
         
         rides = Ride.query.filter_by(user_id=user_id).all()
         return jsonify([ride.to_dict() for ride in rides])
-    
-class AvailableRides(Resource):
-    def get(self):
-        rides = Ride.query.filter(
-            Ride.spaces > 0,               # Ride must have available spaces
-            Ride.pickup_time > datetime.now(),  # Pickup time must be in the future
-            ~Ride.claimers.any()           # Ride must have no claimers (empty relationship)
-        ).all()
 
-        print(f"Available rides: {rides}")   # Add this for debugging
-
-        if not rides:
-            return [], 200
-        
-        rides_data = [ride.to_dict() for ride in rides]
-        
-        return rides_data, 200
-    
+# Update a ride (requires user authentication)
 class Update_Ride(Resource):
     def put(self, ride_id):
         data = request.json
         user_id = session.get('user_id')
-
         if not user_id:
-            return {"error": "Unauhorized"}, 401
+            return {"error": "Unauthorized"}, 401
         
         ride = Ride.query.get(ride_id)
-
         if not ride:
             return {"error": "Ride not found"}, 404
         
@@ -227,20 +111,20 @@ class Update_Ride(Resource):
         ride.spaces = data.get('spaces', ride.spaces)
         ride.destination = data.get('destination', ride.destination)
         ride.duration = data.get('duration', ride.duration)
-        ride.mielage = data.get('mileage', ride.mileage)
+        ride.mileage = data.get('mileage', ride.mileage)
 
         db.session.commit()
 
         return {"message": "Ride updated successfully"}, 200
 
+# Delete a ride (requires user authentication)
 class Delete_Ride(Resource):
-    def delete(self,ride_id):
+    def delete(self, ride_id):
         user_id = session.get('user_id')
         if not user_id:
             return {"error": "Unauthorized"}, 401
         
         ride = Ride.query.get(ride_id)
-
         if not ride:
             return {"Error": "Ride not found"}, 404
         
@@ -251,24 +135,108 @@ class Delete_Ride(Resource):
         db.session.commit()
 
         return {"message": "Ride deleted successfully"}, 200
-    
 
+class MyBooking(Resource):
+    # GET all bookings
+    def get(self):
+        print("GET /api/bookings called")
+        user_id = session.get('user_id')
+        print(f"User ID from session: {user_id}")
+        if not user_id:
+            return {"error": "Unauthorized"}, 401
+
+        try:
+            print(f"Booking model: {Booking}")
+            bookings = Booking.query.filter_by(user_id=user_id).all()
+            print(f"Bookings found: {bookings}")
+            return jsonify([booking.to_dict() for booking in bookings])
+        except Exception as e:
+            print(f"Error querying bookings: {e}")
+            return {"error": "Internal Server Error"}, 500
+
+    # CREATE a new booking
+    def post(self):
+        data = request.get_json()
+        ride_id = data.get('ride_id')
+        user_id = data.get('user_id')
+        status = data.get('status', 'Pending')
+
+        # Check for required fields
+        if not ride_id or not user_id:
+            return {'message': 'ride_id and user_id are required'}, 400
+
+        # Check if the ride and user exist
+        ride = Ride.query.get(ride_id)
+        user = User.query.get(user_id)
+
+        if not ride:
+            return {'message': 'Ride not found'}, 404
+
+        if not user:
+            return {'message': 'User not found'}, 404
+
+        # Create the booking
+        booking = Booking(ride_id=ride.id, user_id=user.id, status=status)
+        db.session.add(booking)
+        db.session.commit()
+
+        return {'message': 'Booking created successfully', 'booking': booking.to_dict()}, 201
+
+class BookingById(Resource):
+    # GET a specific booking by ID
+    def get(self, booking_id):
+        booking = Booking.query.get(booking_id)
+        if not booking:
+            return {"error": "Booking not found"}, 404
+        return jsonify(booking.to_dict())
+
+    # PUT (Update) a booking
+    def put(self, booking_id):
+        booking = Booking.query.get(booking_id)
+        if not booking:
+            return {"error": "Booking not found"}, 404
+
+        data = request.get_json()
+
+        # Update booking status if provided
+        status = data.get('status')
+        if status:
+            booking.status = status
+
+        # Optionally, update other fields like feedback
+        feedback = data.get('feedback')
+        if feedback:
+            booking.feedback = feedback
+
+        db.session.commit()
+
+        return jsonify(booking.to_dict()), 200
+
+    # DELETE a booking
+    def delete(self, booking_id):
+        booking = Booking.query.get(booking_id)
+        if not booking:
+            return {"error": "Booking not found"}, 404
+
+        db.session.delete(booking)
+        db.session.commit()
+
+        return {"message": "Booking deleted successfully"}, 200
+
+
+# API Endpoints
 api.add_resource(Register, '/api/register')
 api.add_resource(Login, '/api/login')
 api.add_resource(Logout, '/api/logout')
-api.add_resource(Clear_Session, '/api/clear_session')
-api.add_resource(Check_Session, '/api/check_session')
-api.add_resource(Cancel_Reservation, '/api/cancel_reservation')
-api.add_resource(Claim_Ride, '/api/claim_ride')
-api.add_resource(Get_Rides, '/api/rides')
 api.add_resource(Submit_Ride, '/api/rides')
+api.add_resource(Get_Rides, '/api/rides')
 api.add_resource(MyRides, '/api/my_rides')
-api.add_resource(AvailableRides, '/api/available_rides')
 api.add_resource(Update_Ride, '/api/rides/<int:ride_id>')
 api.add_resource(Delete_Ride, '/api/rides/<int:ride_id>/delete')
-api.add_resource(ClaimedRides, '/api/claimed_rides')
+api.add_resource(MyBooking, '/api/bookings')
+api.add_resource(BookingById, '/api/bookings/<int:booking_id>')
+
 
 
 if __name__ == '__main__':
     app.run(port=5555, debug=True)
-

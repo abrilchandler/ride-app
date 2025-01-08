@@ -4,7 +4,7 @@ import UpdateRide from './UpdateRide';
 function MyRides() {
     const [rides, setRides] = useState([]);
     const [updatingRideId, setUpdatingRideId] = useState(null);    
-
+    
     useEffect(() => {
         fetchRides();
     }, []);

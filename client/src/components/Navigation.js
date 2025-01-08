@@ -27,15 +27,6 @@ import {NavLink} from "react-router-dom";
                         >Home</NavLink>
                       </div>
                     
-                    <div className="navLinks">
-                      <NavLink 
-                      to="/available-rides"
-                      exact
-                      activeStyle={{
-                        background: "white",
-                      }}
-                      >Available Ride</NavLink>
-                    </div>  
 
                     <div className="navLinks">
                       <NavLink 
@@ -57,9 +48,19 @@ import {NavLink} from "react-router-dom";
                       }}
                       >My Rides</NavLink>
                     </div>
-                    <div>
 
+                    <div className="navLinks">
+                      <NavLink
+                      to="/my-bookings"
+                      exact
+                      activeStyle={{
+                        background: "white",
+                      }}
+                      >My Bookings</NavLink>
                     </div>
+
+                  
+
                     <div>
                       <button onClick={handleLogout} className="logoutButton">
                         Logout
