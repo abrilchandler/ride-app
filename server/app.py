@@ -136,7 +136,7 @@ class MyRides(Resource):
         if not user:
             return {"error": "User not found"}, 404
         
-        print(user.rides, "USER rides")
+        print(user.rides.bookings, "USER rides")
         # Now we need to include bookings within the rides
         booked_rides = []
         for booking in user.bookings:
