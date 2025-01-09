@@ -12,7 +12,7 @@ import UpdateBooking from "./UpdateBooking.js";
 
 function App() {
   const [user, setUser] = useState(null);
-
+  
   useEffect(() => {
     fetch("/api/check_session").then((response) => {
       if (response.ok) {
