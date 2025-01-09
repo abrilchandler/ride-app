@@ -7,18 +7,23 @@ import enum
 #nancy items = bookings
 
 # Models go here!
-class User(db.Model, SerializerMixin):
+class User(db.Model):
     __tablename__ = 'users'
 
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(20), unique=True, nullable=False)
 
-    rides = db.relationship('Ride', secondary='bookings', back_populates='users')
+    rides = db.relationship('Ride', secondary='bookings', viewonly=True)
     
 
     def __repr__(self):
         return f'<User {self.id}, {self.username}>'
     
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'username': self.username
+        }
 
 class Ride(db.Model):
     __tablename__ = 'rides'
@@ -31,7 +36,7 @@ class Ride(db.Model):
     duration = db.Column(db.Integer, nullable=False)
     mileage = db.Column(db.Integer, nullable=False)
 
-    users = db.relationship('User', secondary='bookings', back_populates='rides')
+    bookings = db.relationship('Booking', backref='ride', lazy=True)
 
 
     def __repr__(self):
@@ -45,8 +50,7 @@ class Ride(db.Model):
             'spaces': self.spaces,
             'destination': self.destination,
             'duration': self.duration,
-            'mileage': self.mileage,
-            'user_id': self.user_id 
+            'mileage': self.mileage
         }
     
 
@@ -58,6 +62,9 @@ class BookingStatus(enum.Enum):
     REJECTED = "Rejected"
     IN_PROGRESS = "In Progress"
 
+    def __str__(self):
+        return self.value
+
 class Booking(db.Model):
     __tablename__ = 'bookings'
 
@@ -66,8 +73,8 @@ class Booking(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     status = db.Column(Enum(BookingStatus), default=BookingStatus.PENDING)
 
-    ride = db.relationship('Ride', back_populates='bookings')
-    user = db.relationship('User', back_populates='bookings')
+    #ride = db.relationship('Ride', back_populates='bookings')
+    #user = db.relationship('User', back_populates='bookings')
 
     def __repr__(self):
         return f'<Booking {self.id}, Ride: {self.ride_id}, User: {self.user_id}, Status: {self.status.value}>'
@@ -77,5 +84,5 @@ class Booking(db.Model):
             'id': self.id,
             'ride_id': self.ride_id,
             'user_id': self.user_id,
-            'status': self.status
+            'status': str(self.status)
         }

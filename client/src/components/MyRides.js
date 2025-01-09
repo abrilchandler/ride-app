@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import UpdateRide from './UpdateRide';
+import UpdateBooking from './UpdateBooking';
 
 function MyRides() {
     const [rides, setRides] = useState([]);
@@ -51,7 +51,7 @@ function MyRides() {
                 ))}
             </ul>
             {updatingRideId && (
-                <UpdateRide
+                <UpdateBooking
                     rideId={updatingRideId}
                     onUpdate={fetchRides}
                     onCancel={handleCancelUpdate}

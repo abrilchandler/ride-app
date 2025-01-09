@@ -7,7 +7,7 @@ from datetime import datetime
 from dateutil import parser
 from flask import request, jsonify, session
 from flask_restful import Resource, Api
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 
 # Local imports
 from config import app, db
@@ -20,12 +20,17 @@ class CheckSession(Resource):
     def get(self):
         user_id = session.get('user_id')
         if user_id:
-            user = User.query.get(user_id)
+            # If user is logged in, return the user details as a JSON response
+            user = User.query.get(user_id)  # Get user info from the database
             if user:
-                return {"message": "User is logged in", "username": user.username}, 200
-        return {"message": "No user logged in"}, 401
-
-# Register a new user
+                return user.to_dict(), 200  # Return user details as JSON
+            else:
+                return {"error": "User not found"}, 404
+        else:
+            # If no user_id in session, return error response
+            return {"error": "Not logged in"}, 401   
+        
+         # Register a new user
 class Register(Resource):
     def post(self):
         data = request.json
@@ -72,58 +77,112 @@ class Submit_Ride(Resource):
     def post(self):
         data = request.json
         user_id = session.get('user_id')
+
+        # Check for authentication
         if not user_id:
             return {"error": "Unauthorized"}, 401
+
         try:
+            # Parse the pickup time from the string and validate
+            pickup_time_str = data.get('pickupTime')
+            if not pickup_time_str:
+                return jsonify({'error': 'pickupTime is required'}), 400
+
+            try:
+                pickup_time = parser.isoparse(pickup_time_str)
+            except ValueError:
+                return jsonify({'error': 'Invalid date format for pickupTime'}), 400
+
+            # Create the new ride
             new_ride = Ride(
                 name=data['name'],
-                pickup_time=parser.isoparse(data.get('pickupTime')),
+                pickup_time=pickup_time,
                 spaces=data['spaces'],
                 destination=data['destination'],
                 duration=data['duration'],
-                mileage=data['mileage'],
-                user_id=user_id
+                mileage=data['mileage']
             )
+
+            # Add the new ride to the session and commit to generate the ride id
             db.session.add(new_ride)
             db.session.commit()
 
-            return jsonify({'message': 'Ride Submitted!'})
+            print(f"Ride {new_ride.id} created successfully")  # Log ride creation
+            return {'message': 'Ride Created Successfully!'}, 201
+        
+        except SQLAlchemyError as e:
+            db.session.rollback()  # Rollback if there's any issue with the transaction
+            return jsonify({'error': str(e.orig)}), 500
         except ValueError as e:
             db.session.rollback()
+            return jsonify({'error': 'Invalid data provided'}), 400
+        except Exception as e:
+            db.session.rollback()
             return jsonify({'error': 'Internal Server Error'}), 500
-
 # Get all rides for the authenticated user
 # this myRides should be check_session, it runs when the app starts and sends the user, with an attribute of rides: and nested bookings inside the rides
 class MyRides(Resource):
     def get(self):
-        user_id = check_session()
-        
-        rides = Ride.query.filter_by(user_id=user_id).all()
-        return jsonify([ride.to_dict() for ride in rides])
-
-# Update a ride (requires user authentication)
-class Update_Ride(Resource):
-    def put(self, ride_id):
-        data = request.json
+        # Get the user ID from the session
         user_id = session.get('user_id')
+        
         if not user_id:
             return {"error": "Unauthorized"}, 401
         
-        ride = Ride.query.get(ride_id)
-        if not ride:
-            return {"error": "Ride not found"}, 404
+        # Get all the rides the user has booked (via Booking model)
+        user = User.query.get(user_id)
         
-        ride.name = data.get('name', ride.name)
-        ride.pickup_time = parser.isoparse(data.get('pickupTime', ride.pickup_time.isoformat()))
-        ride.spaces = data.get('spaces', ride.spaces)
-        ride.destination = data.get('destination', ride.destination)
-        ride.duration = data.get('duration', ride.duration)
-        ride.mileage = data.get('mileage', ride.mileage)
+        # If the user doesn't exist (which should not happen if user_id is valid)
+        if not user:
+            return {"error": "User not found"}, 404
+        
+        # Fetch the user's booked rides using the relationship
+        rides = user.rides  # This uses the 'rides' relationship in the User model
+        
+        # Now we need to include bookings within the rides
+        rides_list = []
+        for ride in rides:
+            # For each ride, we will include the bookings related to that ride
+            bookings = Booking.query.filter_by(ride_id=ride.id).all()
+            
+            # Convert the bookings into a list of dictionaries
+            bookings_data = [booking.to_dict() for booking in bookings]
+            
+            ride_data = ride.to_dict()
+            ride_data['bookings'] = bookings_data  # Add the bookings to the ride data
+            
+            rides_list.append(ride_data)
+        
+        return rides_list
 
-        db.session.commit()
 
-        return {"message": "Ride updated successfully"}, 200
+class UpdateBooking(Resource):
+    def put(self, booking_id):
+        # Fetch the booking from the database
+        booking = Booking.query.get(booking_id)
+        if not booking:
+            return {"error": "Booking not found"}, 404
 
+        # Get data from the request
+        data = request.json
+
+        # Update the booking status and optional feedback
+        if 'status' in data:
+            booking.status = data['status']
+        
+        if 'feedback' in data:
+            booking.feedback = data['feedback']
+
+        try:
+            # Commit the changes to the database
+            db.session.commit()
+
+            return {"message": "Booking updated successfully"}, 200
+
+        except SQLAlchemyError as e:
+            db.session.rollback()  # Rollback in case of an error
+            return jsonify({"error": str(e.orig)}), 500
+        
 # Delete a ride (requires user authentication)
 class Delete_Ride(Resource):
     def delete(self, ride_id):
@@ -135,59 +194,69 @@ class Delete_Ride(Resource):
         if not ride:
             return {"Error": "Ride not found"}, 404
         
-        if ride.user_id != user_id:
-            return {"error": "You can only delete your own rides"}, 403
+        # Check if the user has any booking for this ride
+        booking = Booking.query.filter_by(ride_id=ride_id, user_id=user_id).first()
+        if not booking:
+            return {"error": "You can only delete rides you've created"}, 403
         
+        # If the booking exists, we can proceed to delete the ride
         db.session.delete(ride)
         db.session.commit()
 
-        return {"message": "Ride deleted successfully"}, 200
 
 class MyBooking(Resource):
-    # GET all bookings
+    # GET all bookings for the logged-in user
     def get(self):
         print("GET /api/bookings called")
-        user_id = session.get('user_id')
+        user_id = session.get('user_id')  # Get the user ID from session
         print(f"User ID from session: {user_id}")
+        
         if not user_id:
-            return {"error": "Unauthorized"}, 401
+            return {"error": "Unauthorized"}, 401  # User is not authenticated
 
         try:
-            print(f"Booking model: {Booking}")
-            bookings = Booking.query.filter_by(user_id=user_id).all()
+            print(f"Querying bookings for user ID: {user_id}")
+            bookings = Booking.query.filter_by(user_id=user_id).all()  # Get all bookings for the logged-in user
             print(f"Bookings found: {bookings}")
-            return jsonify([booking.to_dict() for booking in bookings])
+            return jsonify([booking.to_dict() for booking in bookings])  # Return the bookings as JSON
         except Exception as e:
             print(f"Error querying bookings: {e}")
-            return {"error": "Internal Server Error"}, 500
+            return {"error": "Internal Server Error"}, 500  # Handle any internal errors
 
-    # CREATE a new booking
+    # POST to create a new booking
     def post(self):
-        data = request.get_json()
+        data = request.json  # Get data from the incoming request
+
+        # Validate required fields
         ride_id = data.get('ride_id')
-        user_id = data.get('user_id')
-        status = data.get('status', 'Pending')
+        if not ride_id:
+            return {"error": "ride_id is required"}, 400  # Bad request if ride_id is missing
 
-        # Check for required fields
-        if not ride_id or not user_id:
-            return {'message': 'ride_id and user_id are required'}, 400
+        user_id = session.get('user_id')  # Get user ID from session
+        if not user_id:
+            return {"error": "Unauthorized"}, 401  # Unauthorized if user is not logged in
 
-        # Check if the ride and user exist
+        # Check if the ride exists in the database
         ride = Ride.query.get(ride_id)
-        user = User.query.get(user_id)
-
         if not ride:
-            return {'message': 'Ride not found'}, 404
+            return {"error": "Ride not found"}, 404  # Return 404 if ride doesn't exist
 
-        if not user:
-            return {'message': 'User not found'}, 404
+        try:
+            # Create a new booking
+            new_booking = Booking(
+                ride_id=ride_id,
+                user_id=user_id,
+                status=BookingStatus.PENDING  # Or your default status
+            )
+            db.session.add(new_booking)  # Add the booking to the session
+            db.session.commit()  # Commit the changes to the database
 
-        # Create the booking
-        booking = Booking(ride_id=ride.id, user_id=user.id, status=status)
-        db.session.add(booking)
-        db.session.commit()
-
-        return {'message': 'Booking created successfully', 'booking': booking.to_dict()}, 201
+            return {"message": "Booking successful"}, 200  # Return success message
+        except Exception as e:
+            print(f"Error creating booking: {e}")
+            db.session.rollback()  # Rollback the session in case of any error
+            return {"error": "Internal Server Error"}, 500 
+        
 
 class BookingById(Resource):
     # GET a specific booking by ID
@@ -195,7 +264,7 @@ class BookingById(Resource):
         booking = Booking.query.get(booking_id)
         if not booking:
             return {"error": "Booking not found"}, 404
-        return jsonify(booking.to_dict())
+        return booking.to_dict()
 
     # PUT (Update) a booking
     def put(self, booking_id):
@@ -239,7 +308,7 @@ api.add_resource(Logout, '/api/logout')
 api.add_resource(Submit_Ride, '/api/rides')
 api.add_resource(Get_Rides, '/api/rides')
 api.add_resource(MyRides, '/api/my_rides')
-api.add_resource(Update_Ride, '/api/rides/<int:ride_id>')
+api.add_resource(UpdateBooking, '/api/bookings/<int:booking_id>')
 api.add_resource(Delete_Ride, '/api/rides/<int:ride_id>/delete')
 api.add_resource(MyBooking, '/api/bookings')
 api.add_resource(BookingById, '/api/bookings/<int:booking_id>')

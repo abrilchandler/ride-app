@@ -8,7 +8,7 @@ import Login from './Login.js';
 import Register from './Register.js';
 import Header from './Header.js';
 import MyBookings from './MyBookings.js';
-
+import UpdateBooking from "./UpdateBooking.js";
 
 function App() {
   const [user, setUser] = useState(null);
@@ -52,6 +52,10 @@ function App() {
           {user ? <MyBookings /> : <Redirect to='/register' />}
         </Route>
 
+        <Route 
+          path="/update-booking/:bookingId" 
+          render={(props) => <UpdateBooking {...props} />}
+        />
         
         <Route exact path="/">
           {user ? <Home user={user} /> : <Redirect to='/register' />}
@@ -65,5 +69,3 @@ function App() {
 
 export default App;
 
-// i need my createbooking file to be integrated into my home file so i can have a button attached to each available ride to change the status of the ride, then have it moved to my bookings
-// next i need updatebookings off the navbar and only available when in my bookings

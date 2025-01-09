@@ -29,8 +29,39 @@ function Home({ user }) {
   };
 
   const handleBookRide = (rideId) => {
-    console.log(rideId) // make sure there's something here
-    setSelectedRide(rideId);  // Set the selected ride's ID when the user chooses a ride
+    const userId = user.id;  // Assuming user is already logged in
+  
+    if (!userId) {
+      console.log("User is not logged in");
+      return;
+    }
+  
+    const payload = {
+      ride_id: rideId,  // Ride ID
+      user_id: userId   // User ID (ensure this is available and valid)
+    };
+  
+    fetch('/api/bookings', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    })
+    .then(response => {
+      if (response.ok) {
+        return response.json();
+      } else {
+        throw new Error('Failed to book ride');
+      }
+    })
+    .then(data => {
+      console.log('Ride booked successfully:', data);
+      // Optionally update the UI
+    })
+    .catch(error => {
+      console.error('Error booking ride:', error);
+    });
   };
   console.log(user, "user") // check to make sure this is present
   console.log(rides) // make sure each ride has an id and it can be accessed by ride.id
@@ -47,7 +78,6 @@ function Home({ user }) {
           <li key={ride.id}>
             <h3>{ride.name}</h3>
             <p>Destination: {ride.destination}</p>
-            <p>Pickup Time: {ride.pickup_time}</p>
             <p>Spaces Left: {ride.spaces}</p>
 
             {/* Button to book the ride */}
