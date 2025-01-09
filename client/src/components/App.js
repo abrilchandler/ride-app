@@ -43,7 +43,7 @@ function App() {
           {!user ? <Login onLogin={handleLogin} /> : <Redirect to='/' />}
         </Route>
         <Route path="/my-rides">
-          {user ? <MyRides /> : <Redirect to='/register' />}
+          {user ? <MyRides user={user}/> : <Redirect to='/register' />}
         </Route>
         <Route path="/create-rides">
           {user ? <CreateRides /> : <Redirect to='/register' />}

@@ -125,7 +125,7 @@ class MyRides(Resource):
     def get(self):
         # Get the user ID from the session
         user_id = session.get('user_id')
-        
+      
         if not user_id:
             return {"error": "Unauthorized"}, 401
         
@@ -136,24 +136,20 @@ class MyRides(Resource):
         if not user:
             return {"error": "User not found"}, 404
         
-        # Fetch the user's booked rides using the relationship
-        rides = user.rides  # This uses the 'rides' relationship in the User model
-        
+        print(user.rides, "USER rides")
         # Now we need to include bookings within the rides
-        rides_list = []
-        for ride in rides:
-            # For each ride, we will include the bookings related to that ride
-            bookings = Booking.query.filter_by(ride_id=ride.id).all()
-            
-            # Convert the bookings into a list of dictionaries
-            bookings_data = [booking.to_dict() for booking in bookings]
-            
-            ride_data = ride.to_dict()
-            ride_data['bookings'] = bookings_data  # Add the bookings to the ride data
-            
-            rides_list.append(ride_data)
-        
-        return rides_list
+        booked_rides = []
+        for booking in user.bookings:
+            ride = booking.ride  # Each booking has a corresponding ride
+            booked_rides.append({
+                "id": ride.id,
+                "name": ride.name,
+                "destination": ride.destination,
+                "pickup_time": ride.pickup_time.strftime('%Y-%m-%d %H:%M:%S'),
+                "status": booking.status.name  # Booking status (Pending, Confirmed, etc.)
+            })
+
+        return booked_rides
 
 
 class UpdateBooking(Resource):
