@@ -52,7 +52,7 @@ class Login(Resource):
         data = request.json
         username = data.get('username')
         user = User.query.filter_by(username=username).first()
-
+    
         if user:
             session['user_id'] = user.id
             return {"username": user.username}, 200
