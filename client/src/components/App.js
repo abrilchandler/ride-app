@@ -48,7 +48,7 @@ function App() {
         <Route path="/create-rides">
           {user ? <CreateRides /> : <Redirect to='/register' />}
         </Route>
-        <Route path="/my-bookings">
+        <Route path="/bookings">
           {user ? <MyBookings /> : <Redirect to='/register' />}
         </Route>
 

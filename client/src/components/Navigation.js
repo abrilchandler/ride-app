@@ -41,7 +41,7 @@ import {NavLink} from "react-router-dom";
                     
                     <div className="navLinks">
                       <NavLink 
-                      to="/my-rides"
+                      to="/bookings"
                       exact
                       activeStyle={{
                         background: "white",

@@ -23,9 +23,22 @@ class CheckSession(Resource):
             # If user is logged in, return the user details as a JSON response
             user = User.query.get(user_id)  # Get user info from the database
             if user:
-                return user.to_dict(), 200  # Return user details as JSON
-            else:
-                return {"error": "User not found"}, 404
+                user.to_dict(), 200  # Return user details as JSON
+                user['rides'] = []
+
+                for ride in user.rides:
+                    ride_data = ride.to_dict()
+                    ride_data['bookings'] = []
+
+                    for booking in ride.bookings:
+                        ride_data['bookings'].append({
+                            'id': booking.id,
+                            'status': booking.status,
+                            'user_id': booking.user_id
+                        })
+                    user['rides'].append(ride_data)
+
+                return user, 200
         else:
             # If no user_id in session, return error response
             return {"error": "Not logged in"}, 401   
@@ -121,35 +134,37 @@ class Submit_Ride(Resource):
             return jsonify({'error': 'Internal Server Error'}), 500
 # Get all rides for the authenticated user
 # this myRides should be check_session, it runs when the app starts and sends the user, with an attribute of rides: and nested bookings inside the rides
-class MyRides(Resource):
-    def get(self):
-        # Get the user ID from the session
-        user_id = session.get('user_id')
+
+
+# class MyRides(Resource):
+#    def get(self):
+ #       # Get the user ID from the session
+  #      user_id = session.get('user_id')
       
-        if not user_id:
-            return {"error": "Unauthorized"}, 401
+   #     if not user_id:
+    #        return {"error": "Unauthorized"}, 401
         
         # Get all the rides the user has booked (via Booking model)
-        user = User.query.get(user_id)
+     #   user = User.query.get(user_id)
         
         # If the user doesn't exist (which should not happen if user_id is valid)
-        if not user:
-            return {"error": "User not found"}, 404
+      #  if not user:
+       #     return {"error": "User not found"}, 404
         
-        print(user.rides.bookings, "USER rides")
+       # print(user.rides.bookings, "USER rides")
         # Now we need to include bookings within the rides
-        booked_rides = []
-        for booking in user.bookings:
-            ride = booking.ride  # Each booking has a corresponding ride
-            booked_rides.append({
-                "id": ride.id,
-                "name": ride.name,
-                "destination": ride.destination,
-                "pickup_time": ride.pickup_time.strftime('%Y-%m-%d %H:%M:%S'),
-                "status": booking.status.name  # Booking status (Pending, Confirmed, etc.)
-            })
+        #booked_rides = []
+        #for booking in user.bookings:
+         #   ride = booking.ride  # Each booking has a corresponding ride
+          #  booked_rides.append({
+           #     "id": ride.id,
+           #     "name": ride.name,
+           #     "destination": ride.destination,
+           #     "pickup_time": ride.pickup_time.strftime('%Y-%m-%d %H:%M:%S'),
+           #     "status": booking.status.name  # Booking status (Pending, Confirmed, etc.)
+           # })
 
-        return booked_rides
+        #return booked_rides
 
 
 class UpdateBooking(Resource):
@@ -177,7 +192,7 @@ class UpdateBooking(Resource):
 
         except SQLAlchemyError as e:
             db.session.rollback()  # Rollback in case of an error
-            return jsonify({"error": str(e.orig)}), 500
+            return {"error": str(e.orig)}, 500
         
 # Delete a ride (requires user authentication)
 class Delete_Ride(Resource):
@@ -303,7 +318,7 @@ api.add_resource(Login, '/api/login')
 api.add_resource(Logout, '/api/logout')
 api.add_resource(Submit_Ride, '/api/rides')
 api.add_resource(Get_Rides, '/api/rides')
-api.add_resource(MyRides, '/api/my_rides')
+#api.add_resource(MyRides, '/api/my_rides')
 api.add_resource(UpdateBooking, '/api/bookings/<int:booking_id>')
 api.add_resource(Delete_Ride, '/api/rides/<int:ride_id>/delete')
 api.add_resource(MyBooking, '/api/bookings')
