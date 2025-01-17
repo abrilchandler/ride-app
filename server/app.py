@@ -195,7 +195,7 @@ class UpdateBooking(Resource):
             return {"error": str(e.orig)}, 500
         
 # Delete a ride (requires user authentication)
-class Delete_Ride(Resource):
+class Delete_Booking(Resource):
     def delete(self, ride_id):
         user_id = session.get('user_id')
         if not user_id:
@@ -320,7 +320,7 @@ api.add_resource(Submit_Ride, '/api/rides')
 api.add_resource(Get_Rides, '/api/rides')
 #api.add_resource(MyRides, '/api/my_rides')
 api.add_resource(UpdateBooking, '/api/bookings/<int:booking_id>')
-api.add_resource(Delete_Ride, '/api/rides/<int:ride_id>/delete')
+api.add_resource(Delete_Booking, '/api/bookings/<int:ride_id>')
 api.add_resource(MyBooking, '/api/bookings')
 api.add_resource(BookingById, '/api/bookings/<int:booking_id>')
 

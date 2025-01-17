@@ -7,51 +7,48 @@ function MyRides({ user }) {
 
   useEffect(() => {
     console.log("useEffect triggered");
-    
     if (user) {
       console.log("User is logged in, fetching booked rides...");
-      
-      // Define the function inside useEffect to avoid redefinition warning
-      const fetchBookedRides = async () => {
-        console.log("Starting fetchBookedRides...");
-
-        if (!user) {
-          alert("You must be logged in to see your booked rides.");
-          console.log("User not logged in, fetch aborted.");
-          return;
-        }
-
-        setLoading(true);
-        console.log("Setting loading state to true.");
-
-        try {
-          console.log("Sending fetch request to /api/my_rides");
-          const response = await fetch("/api/my_rides");
-
-          if (!response.ok) {
-            console.error("Failed to fetch, status:", response.status);
-            throw new Error(`Failed to fetch booked rides. Status: ${response.status}`);
-          }
-
-          const data = await response.json();
-          console.log("Data received from API:", data);
-
-          setBookedRides(data);
-          console.log("Booked rides state updated:", data);
-        } catch (error) {
-          console.error("Error while fetching booked rides:", error);
-          setError(error.message);
-        } finally {
-          setLoading(false);
-          console.log("Loading state set to false.");
-        }
-      };
-
-      fetchBookedRides(); // Call it here
+      fetchBookedRides();
     } else {
       console.log("No user found, skipping fetch.");
     }
-  }, [user]);
+  }, [user, fetchBookedRides]);
+
+  const fetchBookedRides = async () => {
+    console.log("Starting fetchBookedRides...");
+
+    if (!user) {
+      alert("You must be logged in to see your booked rides.");
+      console.log("User not logged in, fetch aborted.");
+      return;
+    }
+
+    setLoading(true);
+    console.log("Setting loading state to true.");
+
+    try {
+      console.log("Sending fetch request to /api/my_rides");
+      const response = await fetch("/api/my_rides");
+
+      if (!response.ok) {
+        console.error("Failed to fetch, status:", response.status);
+        throw new Error("Failed to fetch booked rides");
+      }
+
+      const data = await response.json();
+      console.log("Data received from API:", data);
+
+      setBookedRides(data);
+      console.log("Booked rides state updated:", data);
+    } catch (error) {
+      console.error("Error while fetching booked rides:", error);
+      setError(error.message);
+    } finally {
+      setLoading(false);
+      console.log("Loading state set to false.");
+    }
+  };
 
   return (
     <div>
