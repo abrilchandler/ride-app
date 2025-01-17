@@ -23,8 +23,10 @@ class CheckSession(Resource):
             # If user is logged in, return the user details as a JSON response
             user = User.query.get(user_id)  # Get user info from the database
             if user:
-                user.to_dict(), 200  # Return user details as JSON
-                user['rides'] = []
+                user_data = user.to_dict()  # Return user details as JSON
+              #  user['rides'] = []
+                user_data['rides'] = []
+
 
                 for ride in user.rides:
                     ride_data = ride.to_dict()
@@ -36,9 +38,9 @@ class CheckSession(Resource):
                             'status': booking.status,
                             'user_id': booking.user_id
                         })
-                    user['rides'].append(ride_data)
+                    user_data['rides'].append(ride_data)
 
-                return user, 200
+                return user_data, 200
         else:
             # If no user_id in session, return error response
             return {"error": "Not logged in"}, 401   
