@@ -86,6 +86,7 @@ class Get_Rides(Resource):
         rides = Ride.query.all()
         rides_list = [{'id': ride.id, 'name': ride.name, 'spaces': ride.spaces, 'destination': ride.destination, 'duration': ride.duration, 'mileage': ride.mileage} for ride in rides]
         return jsonify(rides_list)
+        
 
 # Submit a new ride (requires user authentication)
 class Submit_Ride(Resource):
@@ -199,6 +200,7 @@ class UpdateBooking(Resource):
 # Delete a ride (requires user authentication)
 class Delete_Booking(Resource):
     def delete(self, ride_id):
+        print(ride_id)
         user_id = session.get('user_id')
         if not user_id:
             return {"error": "Unauthorized"}, 401
@@ -303,7 +305,10 @@ class BookingById(Resource):
 
     # DELETE a booking
     def delete(self, booking_id):
+        print(booking_id)
         booking = Booking.query.get(booking_id)
+        print(booking)
+        print(booking_id)
         if not booking:
             return {"error": "Booking not found"}, 404
 

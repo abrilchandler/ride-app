@@ -61,9 +61,10 @@ class BookingStatus(enum.Enum):
     COMPLETED = "Completed"
     REJECTED = "Rejected"
     IN_PROGRESS = "In Progress"
-
+    
     def __str__(self):
         return self.value
+
 
 class Booking(db.Model):
     __tablename__ = 'bookings'

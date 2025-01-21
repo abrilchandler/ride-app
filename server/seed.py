@@ -14,8 +14,8 @@ if __name__ == '__main__':
     fake = Faker()
     with app.app_context():
 
-        Ride.query.delete()
-        User.query.delete()
+       # Ride.query.delete()
+        #User.query.delete()
         Booking.query.delete()
 
         users = [
@@ -28,7 +28,7 @@ if __name__ == '__main__':
         rides = [
             Ride(
                 name=fake.city(),
-                user_id=rc(users).id,
+                #user_id=rc(users).id,
                 pickup_time=fake.future_datetime(),
                 spaces=randint(1, 5),
                 destination=fake.city(),

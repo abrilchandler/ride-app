@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useHistory, useParams } from 'react-router-dom';
 import { Formik, Field, Form } from 'formik';
 
-function UpdateBooking() {
-  const { bookingId } = useParams();
+function UpdateBooking({bookingId, onUpdate, onCancel}) {
+  //const { bookingId } = useParams();
   const history = useHistory();
   const [booking, setBooking] = useState(null);
 
@@ -33,7 +33,7 @@ function UpdateBooking() {
       .then((response) => response.json())
       .then((data) => {
         console.log('Booking updated:', data);
-        history.push('/my-bookings');  // Redirect to the booking list after updating
+        onUpdate();
       })
       .catch((error) => {
         console.error('Error updating booking:', error);
@@ -54,21 +54,13 @@ function UpdateBooking() {
           <div>
             <label htmlFor="status">Status</label>
             <Field as="select" name="status">
-              <option value="Pending">Pending</option>
-              <option value="Confirmed">Confirmed</option>
-              <option value="Cancelled">Cancelled</option>
-              <option value="Completed">Completed</option>
+              <option value="PENDING">Pending</option>
+              <option value="CONFIRMED">Confirmed</option>
+              <option value="COMPLETED">Completed</option>
             </Field>
           </div>
 
-          <div>
-            <label htmlFor="feedback">Feedback</label>
-            <Field
-              as="textarea"
-              name="feedback"
-              placeholder="Leave your feedback here"
-            />
-          </div>
+          
 
           <button type="submit">Update Booking</button>
         </Form>

@@ -52,7 +52,7 @@ function Home({ user }) {
 
       const data = await response.json();
       console.log("Ride booked successfully:", data);
-
+      
       // Optionally, you can refresh the "My Rides" section here or just reload the page.
       // You can also trigger the fetch for the user's booked rides from MyRides.js directly.
 
