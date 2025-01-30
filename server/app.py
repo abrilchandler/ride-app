@@ -177,7 +177,7 @@ class UpdateBooking(Resource):
         if not booking:
             return {"error": "Booking not found"}, 404
 
-        # Get data from the request
+     #    Get data from the request
         data = request.json
 
         # Update the booking status and optional feedback
@@ -198,25 +198,25 @@ class UpdateBooking(Resource):
             return {"error": str(e.orig)}, 500
         
 # Delete a ride (requires user authentication)
-class Delete_Booking(Resource):
-    def delete(self, ride_id):
-        print(ride_id)
-        user_id = session.get('user_id')
-        if not user_id:
-            return {"error": "Unauthorized"}, 401
+#class Delete_Booking(Resource):
+ #   def delete(self, ride_id):
+  #      print(ride_id)
+   #     user_id = session.get('user_id')
+    #    if not user_id:
+    #        return {"error": "Unauthorized"}, 401
         
-        ride = Ride.query.get(ride_id)
-        if not ride:
-            return {"Error": "Ride not found"}, 404
+     #   ride = Ride.query.get(ride_id)
+     #   if not ride:
+     #       return {"Error": "Ride not found"}, 404
         
         # Check if the user has any booking for this ride
-        booking = Booking.query.filter_by(ride_id=ride_id, user_id=user_id).first()
-        if not booking:
-            return {"error": "You can only delete rides you've created"}, 403
+     #   booking = Booking.query.filter_by(ride_id=ride_id, user_id=user_id).first()
+     #   if not booking:
+      #      return {"error": "You can only delete rides you've created"}, 403
         
         # If the booking exists, we can proceed to delete the ride
-        db.session.delete(ride)
-        db.session.commit()
+      #  db.session.delete(ride)
+       # db.session.commit()
 
 
 class MyBooking(Resource):
@@ -326,7 +326,7 @@ api.add_resource(Logout, '/api/logout')
 api.add_resource(Submit_Ride, '/api/rides')
 api.add_resource(Get_Rides, '/api/rides')
 #api.add_resource(MyRides, '/api/my_rides')
-#api.add_resource(UpdateBooking, '/api/bookings/<int:booking_id>')
+api.add_resource(UpdateBooking, '/api/bookings/<int:booking_id>')
 #api.add_resource(Delete_Booking, '/api/bookings/<int:ride_id>')
 api.add_resource(MyBooking, '/api/bookings')
 api.add_resource(BookingById, '/api/bookings/<int:booking_id>')

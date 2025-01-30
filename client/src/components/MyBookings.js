@@ -30,7 +30,7 @@ function MyBookings() {
     const handleDelete = async (bookingId) => {
         if (window.confirm('Are you sure you want to cancel this booking?')) {
             try {
-                const response = await fetch(`/api/bookings/${bookingId}/delete`, {
+                const response = await fetch(`/api/bookings/${bookingId}`, {
                     method: 'DELETE',
                 });
                 if (response.ok) {
