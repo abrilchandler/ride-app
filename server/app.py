@@ -137,35 +137,6 @@ class Submit_Ride(Resource):
             return jsonify({'error': 'Internal Server Error'}), 500
 
 
-
-class UpdateBooking(Resource):
-    def put(self, booking_id):
-        # Fetch the booking from the database
-        booking = Booking.query.get(booking_id)
-        if not booking:
-            return {"error": "Booking not found"}, 404
-
-     #    Get data from the request
-        data = request.json
-
-        # Update the booking status and optional feedback
-        if 'status' in data:
-            booking.status = data['status']
-        
-        if 'feedback' in data:
-            booking.feedback = data['feedback']
-
-        try:
-            # Commit the changes to the database
-            db.session.commit()
-
-            return {"message": "Booking updated successfully"}, 200
-
-        except SQLAlchemyError as e:
-            db.session.rollback()  # Rollback in case of an error
-            return {"error": str(e.orig)}, 500
-        
-
 class MyBooking(Resource):
     # GET all bookings for the logged-in user
     def get(self):
@@ -230,6 +201,7 @@ class BookingById(Resource):
 
     # PUT (Update) a booking
     def put(self, booking_id):
+        breakpoint()
         booking = Booking.query.get(booking_id)
         if not booking:
             return {"error": "Booking not found"}, 404
@@ -272,7 +244,6 @@ api.add_resource(Login, '/api/login')
 api.add_resource(Logout, '/api/logout')
 api.add_resource(Submit_Ride, '/api/rides')
 api.add_resource(Get_Rides, '/api/rides')
-api.add_resource(UpdateBooking, '/api/bookings/<int:booking_id>')
 api.add_resource(MyBooking, '/api/bookings')
 api.add_resource(BookingById, '/api/bookings/<int:booking_id>')
 
