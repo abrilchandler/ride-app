@@ -135,39 +135,7 @@ class Submit_Ride(Resource):
         except Exception as e:
             db.session.rollback()
             return jsonify({'error': 'Internal Server Error'}), 500
-# Get all rides for the authenticated user
-# this myRides should be check_session, it runs when the app starts and sends the user, with an attribute of rides: and nested bookings inside the rides
 
-
-# class MyRides(Resource):
-#    def get(self):
- #       # Get the user ID from the session
-  #      user_id = session.get('user_id')
-      
-   #     if not user_id:
-    #        return {"error": "Unauthorized"}, 401
-        
-        # Get all the rides the user has booked (via Booking model)
-     #   user = User.query.get(user_id)
-        
-        # If the user doesn't exist (which should not happen if user_id is valid)
-      #  if not user:
-       #     return {"error": "User not found"}, 404
-        
-       # print(user.rides.bookings, "USER rides")
-        # Now we need to include bookings within the rides
-        #booked_rides = []
-        #for booking in user.bookings:
-         #   ride = booking.ride  # Each booking has a corresponding ride
-          #  booked_rides.append({
-           #     "id": ride.id,
-           #     "name": ride.name,
-           #     "destination": ride.destination,
-           #     "pickup_time": ride.pickup_time.strftime('%Y-%m-%d %H:%M:%S'),
-           #     "status": booking.status.name  # Booking status (Pending, Confirmed, etc.)
-           # })
-
-        #return booked_rides
 
 
 class UpdateBooking(Resource):
@@ -197,27 +165,6 @@ class UpdateBooking(Resource):
             db.session.rollback()  # Rollback in case of an error
             return {"error": str(e.orig)}, 500
         
-# Delete a ride (requires user authentication)
-#class Delete_Booking(Resource):
- #   def delete(self, ride_id):
-  #      print(ride_id)
-   #     user_id = session.get('user_id')
-    #    if not user_id:
-    #        return {"error": "Unauthorized"}, 401
-        
-     #   ride = Ride.query.get(ride_id)
-     #   if not ride:
-     #       return {"Error": "Ride not found"}, 404
-        
-        # Check if the user has any booking for this ride
-     #   booking = Booking.query.filter_by(ride_id=ride_id, user_id=user_id).first()
-     #   if not booking:
-      #      return {"error": "You can only delete rides you've created"}, 403
-        
-        # If the booking exists, we can proceed to delete the ride
-      #  db.session.delete(ride)
-       # db.session.commit()
-
 
 class MyBooking(Resource):
     # GET all bookings for the logged-in user
@@ -325,9 +272,7 @@ api.add_resource(Login, '/api/login')
 api.add_resource(Logout, '/api/logout')
 api.add_resource(Submit_Ride, '/api/rides')
 api.add_resource(Get_Rides, '/api/rides')
-#api.add_resource(MyRides, '/api/my_rides')
 api.add_resource(UpdateBooking, '/api/bookings/<int:booking_id>')
-#api.add_resource(Delete_Booking, '/api/bookings/<int:ride_id>')
 api.add_resource(MyBooking, '/api/bookings')
 api.add_resource(BookingById, '/api/bookings/<int:booking_id>')
 

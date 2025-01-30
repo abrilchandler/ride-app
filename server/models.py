@@ -74,8 +74,6 @@ class Booking(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     status = db.Column(Enum(BookingStatus), default=BookingStatus.PENDING)
 
-    #ride = db.relationship('Ride', back_populates='bookings')
-    #user = db.relationship('User', back_populates='bookings')
 
     def __repr__(self):
         return f'<Booking {self.id}, Ride: {self.ride_id}, User: {self.user_id}, Status: {self.status.value}>'
