@@ -5,7 +5,7 @@
 # Remote library imports
 from datetime import datetime
 from dateutil import parser
-from flask import request, jsonify, session
+from flask import request, jsonify, session, make_response
 from flask_restful import Resource, Api
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 
@@ -19,28 +19,31 @@ api = Api(app)
 class CheckSession(Resource):
     def get(self):
         user_id = session.get('user_id')
+        
         if user_id:
             # If user is logged in, return the user details as a JSON response
-            user = User.query.get(user_id)  # Get user info from the database
+            user = User.query.get(user_id)
+             # Get user info from the database
             if user:
+                
                 user_data = user.to_dict()  # Return user details as JSON
               #  user['rides'] = []
                 user_data['rides'] = []
-
+                
 
                 for ride in user.rides:
                     ride_data = ride.to_dict()
                     ride_data['bookings'] = []
-
+                    
                     for booking in ride.bookings:
                         ride_data['bookings'].append({
                             'id': booking.id,
                             'status': booking.status,
                             'user_id': booking.user_id
                         })
+                    
                     user_data['rides'].append(ride_data)
-
-                return user_data, 200
+                return make_response(user_data, 200)
         else:
             # If no user_id in session, return error response
             return {"error": "Not logged in"}, 401   
@@ -201,7 +204,7 @@ class BookingById(Resource):
 
     # PUT (Update) a booking
     def put(self, booking_id):
-        breakpoint()
+    
         booking = Booking.query.get(booking_id)
         if not booking:
             return {"error": "Booking not found"}, 404
@@ -210,6 +213,7 @@ class BookingById(Resource):
 
         # Update booking status if provided
         status = data.get('status')
+        breakpoint()
         if status:
             booking.status = status
 

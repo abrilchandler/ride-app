@@ -16,7 +16,7 @@ if __name__ == '__main__':
 
        # Ride.query.delete()
         #User.query.delete()
-        Booking.query.delete()
+        #Booking.query.delete()
 
         users = [
             User(username=fake.name()
